@@ -4,6 +4,7 @@ struct ProfileView: View {
     @Environment(\.dependencies) private var dependencies
     @Environment(\.session) private var session
     @State private var viewModel: ProfileViewModel?
+    @State private var disputesViewModel: DisputesViewModel?
 
     var body: some View {
         NavigationStack {
@@ -23,9 +24,16 @@ struct ProfileView: View {
                         logoutUseCase: dependencies.logoutUseCase
                     )
                 }
+                if disputesViewModel == nil {
+                    disputesViewModel = DisputesViewModel(
+                        fetchDisputesUseCase: dependencies.fetchDisputesUseCase,
+                        fileDisputeUseCase: dependencies.fileDisputeUseCase
+                    )
+                }
                 await viewModel?.load()
             }
         }
+        .privacyProtected()
     }
 
     @ViewBuilder
@@ -33,7 +41,7 @@ struct ProfileView: View {
         if viewModel.isLoading && viewModel.user == nil {
             LoadingView()
         } else if let errorMessage = viewModel.errorMessage, viewModel.user == nil {
-            ErrorStateView(message: errorMessage) { Task { await viewModel.load() } }
+            ErrorStateView(error: errorMessage) { Task { await viewModel.load() } }
         } else {
             List {
                 if let user = viewModel.user {
@@ -44,6 +52,7 @@ struct ProfileView: View {
                             Text(user.phoneNumber).font(.subheadline).foregroundStyle(.secondary)
                         }
                         .padding(.vertical, DesignSystem.Spacing.xs)
+                        .accessibilityElement(children: .combine)
                     }
                 }
 
@@ -53,6 +62,20 @@ struct ProfileView: View {
                         set: { newValue in Task { await viewModel.setBiometricEnabled(newValue) } }
                     ))
                     .disabled(viewModel.isUpdatingPreference)
+                }
+
+                Section("Documents & Support") {
+                    NavigationLink("Statements") {
+                        StatementsListView()
+                    }
+                    if let disputesViewModel {
+                        NavigationLink("Disputes") {
+                            DisputeListView(viewModel: disputesViewModel)
+                        }
+                    }
+                    NavigationLink("Help & Support") {
+                        SupportView()
+                    }
                 }
 
                 Section {

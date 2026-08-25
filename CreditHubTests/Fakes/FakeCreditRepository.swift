@@ -1,3 +1,4 @@
+import Foundation
 @testable import CreditHub
 
 final class FakeCreditRepository: CreditRepository {

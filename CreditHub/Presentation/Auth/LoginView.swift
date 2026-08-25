@@ -40,9 +40,10 @@ struct LoginView: View {
                     .background(DesignSystem.Colors.secondaryBackground, in: RoundedRectangle(cornerRadius: 10))
 
                 if let errorMessage = viewModel.errorMessage {
-                    Text(errorMessage)
+                    Text(errorMessage.message)
                         .font(DesignSystem.Typography.caption)
                         .foregroundStyle(DesignSystem.Colors.danger)
+                        .accessibilityLabel(Text("\(errorMessage.title). \(errorMessage.message)"))
                 }
 
                 Button {

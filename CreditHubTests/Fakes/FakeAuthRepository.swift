@@ -5,6 +5,7 @@ final class FakeAuthRepository: AuthRepository {
     var loginResult: Result<AuthSession, Error> = .failure(APIError.unauthorized)
     var refreshResult: Result<AuthSession, Error> = .failure(APIError.unauthorized)
     private(set) var logoutCallCount = 0
+    private(set) var refreshCallCount = 0
 
     func login(email: String, password: String) async throws -> AuthSession {
         let session = try loginResult.get()
@@ -13,7 +14,10 @@ final class FakeAuthRepository: AuthRepository {
     }
 
     func refreshSession() async throws -> AuthSession {
-        try refreshResult.get()
+        refreshCallCount += 1
+        let session = try refreshResult.get()
+        currentSession = session
+        return session
     }
 
     func logout() async throws {

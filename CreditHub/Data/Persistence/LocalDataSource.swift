@@ -36,4 +36,24 @@ actor LocalDataSource {
         )
         return try modelContext.fetch(descriptor).map { $0.toDomain() }
     }
+
+    func queuePendingApplication(productName: String, requestedAmount: Decimal, currency: String) throws {
+        modelContext.insert(PendingApplicationSubmissionModel(productName: productName, requestedAmount: requestedAmount, currency: currency))
+        try modelContext.save()
+    }
+
+    func fetchPendingApplications() throws -> [PendingApplicationSubmission] {
+        let descriptor = FetchDescriptor<PendingApplicationSubmissionModel>(sortBy: [SortDescriptor(\.createdAt)])
+        return try modelContext.fetch(descriptor).map {
+            PendingApplicationSubmission(id: $0.id, productName: $0.productName, requestedAmount: $0.requestedAmount, currency: $0.currency)
+        }
+    }
+
+    func removePendingApplication(id: String) throws {
+        let descriptor = FetchDescriptor<PendingApplicationSubmissionModel>(predicate: #Predicate { $0.id == id })
+        if let model = try modelContext.fetch(descriptor).first {
+            modelContext.delete(model)
+            try modelContext.save()
+        }
+    }
 }

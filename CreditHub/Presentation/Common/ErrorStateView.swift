@@ -1,15 +1,17 @@
 import SwiftUI
 
 struct ErrorStateView: View {
-    let message: String
+    let error: UserFacingError
     let retryAction: () -> Void
 
     var body: some View {
         VStack(spacing: DesignSystem.Spacing.md) {
-            Image(systemName: "exclamationmark.triangle")
+            Image(systemName: error.symbolName)
                 .font(.largeTitle)
                 .foregroundStyle(DesignSystem.Colors.danger)
-            Text(message)
+            Text(error.title)
+                .font(DesignSystem.Typography.headline)
+            Text(error.message)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
             Button("Try Again", action: retryAction)
@@ -17,5 +19,6 @@ struct ErrorStateView: View {
         }
         .padding(DesignSystem.Spacing.lg)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .accessibilityElement(children: .combine)
     }
 }

@@ -3,6 +3,8 @@ import SwiftUI
 struct TransactionsView: View {
     @Environment(\.dependencies) private var dependencies
     @State private var viewModel: RepaymentsViewModel?
+    @State private var disputesViewModel: DisputesViewModel?
+    @State private var disputingTransaction: Transaction?
 
     var body: some View {
         NavigationStack {
@@ -22,7 +24,26 @@ struct TransactionsView: View {
                         fetchRepaymentScheduleUseCase: dependencies.fetchRepaymentScheduleUseCase
                     )
                 }
+                if disputesViewModel == nil {
+                    disputesViewModel = DisputesViewModel(
+                        fetchDisputesUseCase: dependencies.fetchDisputesUseCase,
+                        fileDisputeUseCase: dependencies.fileDisputeUseCase
+                    )
+                }
                 await viewModel?.load()
+            }
+            .sheet(item: $disputingTransaction) { transaction in
+                if let disputesViewModel {
+                    DisputeFormView(
+                        transaction: transaction,
+                        viewModel: disputesViewModel,
+                        biometricAuth: dependencies.biometricAuth,
+                        isPresented: Binding(
+                            get: { disputingTransaction != nil },
+                            set: { if !$0 { disputingTransaction = nil } }
+                        )
+                    )
+                }
             }
         }
     }
@@ -32,7 +53,7 @@ struct TransactionsView: View {
         if viewModel.isLoading && viewModel.transactions.isEmpty {
             LoadingView()
         } else if let errorMessage = viewModel.errorMessage {
-            ErrorStateView(message: errorMessage) { Task { await viewModel.load() } }
+            ErrorStateView(error: errorMessage) { Task { await viewModel.load() } }
         } else {
             List {
                 Section {
@@ -48,6 +69,12 @@ struct TransactionsView: View {
                     } else {
                         ForEach(viewModel.transactions) { transaction in
                             TransactionActivityRow(transaction: transaction)
+                                .swipeActions(edge: .trailing) {
+                                    Button("Dispute") {
+                                        disputingTransaction = transaction
+                                    }
+                                    .tint(DesignSystem.Colors.danger)
+                                }
                         }
                     }
                 }
@@ -70,5 +97,6 @@ private struct TransactionActivityRow: View {
             Text(CurrencyFormatter.string(from: transaction.amount, currencyCode: transaction.currency))
                 .foregroundStyle(transaction.type == .credit ? DesignSystem.Colors.success : .primary)
         }
+        .accessibilityElement(children: .combine)
     }
 }

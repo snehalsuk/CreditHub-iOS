@@ -5,7 +5,7 @@ import Observation
 final class ProfileViewModel {
     var user: User?
     var isLoading = false
-    var errorMessage: String?
+    var errorMessage: UserFacingError?
     var isBiometricEnabled = true
     var isUpdatingPreference = false
 
@@ -27,7 +27,7 @@ final class ProfileViewModel {
         do {
             user = try await fetchProfileUseCase()
         } catch {
-            errorMessage = "We couldn't load your profile."
+            errorMessage = ErrorPresenter.present(error, fallbackMessage: String(localized: "profile.error.loadFallback"))
         }
     }
 
@@ -41,7 +41,7 @@ final class ProfileViewModel {
             try await updateBiometricPreferenceUseCase(enabled: enabled)
         } catch {
             isBiometricEnabled = previous
-            errorMessage = "We couldn't update your security preference."
+            errorMessage = ErrorPresenter.present(error, fallbackMessage: String(localized: "profile.error.securityPreferenceFallback"))
         }
     }
 

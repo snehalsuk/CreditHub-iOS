@@ -6,7 +6,7 @@ final class RepaymentsViewModel {
     var transactions: [Transaction] = []
     var installments: [RepaymentInstallment] = []
     var isLoading = false
-    var errorMessage: String?
+    var errorMessage: UserFacingError?
 
     private let fetchCreditAccountsUseCase: FetchCreditAccountsUseCase
     private let fetchTransactionsUseCase: FetchTransactionsUseCase
@@ -35,7 +35,7 @@ final class RepaymentsViewModel {
             transactions = try await fetchedTransactions
             installments = try await fetchedInstallments
         } catch {
-            errorMessage = "We couldn't load your activity."
+            errorMessage = ErrorPresenter.present(error, fallbackMessage: String(localized: "activity.error.fallback"))
         }
     }
 }

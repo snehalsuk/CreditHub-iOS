@@ -21,6 +21,7 @@ struct DashboardView: View {
                 await viewModel?.load()
             }
         }
+        .privacyProtected()
     }
 
     @ViewBuilder
@@ -28,8 +29,8 @@ struct DashboardView: View {
         switch state {
         case .loading:
             LoadingView()
-        case .failed(let message):
-            ErrorStateView(message: message) {
+        case .failed(let error):
+            ErrorStateView(error: error) {
                 Task { await viewModel.load() }
             }
         case .loaded(let accounts, let recentTransactions):

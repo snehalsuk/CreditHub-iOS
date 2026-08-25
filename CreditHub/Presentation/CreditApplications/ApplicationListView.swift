@@ -33,7 +33,9 @@ struct ApplicationListView: View {
                 if viewModel == nil {
                     viewModel = CreditApplicationsViewModel(
                         fetchCreditApplicationsUseCase: dependencies.fetchCreditApplicationsUseCase,
-                        submitCreditApplicationUseCase: dependencies.submitCreditApplicationUseCase
+                        submitCreditApplicationUseCase: dependencies.submitCreditApplicationUseCase,
+                        creditApplicationOutbox: dependencies.creditApplicationOutbox,
+                        networkMonitor: dependencies.networkMonitor
                     )
                 }
                 await viewModel?.load()
@@ -43,17 +45,29 @@ struct ApplicationListView: View {
 
     @ViewBuilder
     private func listContent(_ viewModel: CreditApplicationsViewModel) -> some View {
-        if viewModel.isLoading && viewModel.applications.isEmpty {
-            LoadingView()
-        } else if let errorMessage = viewModel.errorMessage, viewModel.applications.isEmpty {
-            ErrorStateView(message: errorMessage) { Task { await viewModel.load() } }
-        } else if viewModel.applications.isEmpty {
-            ContentUnavailableView("No Applications Yet", systemImage: "doc.text", description: Text("Tap + to apply for a new credit product."))
-        } else {
-            List(viewModel.applications) { application in
-                ApplicationRow(application: application)
+        VStack(spacing: 0) {
+            if let notice = viewModel.queuedOfflineNotice {
+                Label(notice, systemImage: "tray.and.arrow.up")
+                    .font(.footnote.weight(.semibold))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, DesignSystem.Spacing.sm)
+                    .background(DesignSystem.Colors.warning)
+                    .foregroundStyle(.white)
+                    .accessibilityElement(children: .combine)
             }
-            .refreshable { await viewModel.load() }
+
+            if viewModel.isLoading && viewModel.applications.isEmpty {
+                LoadingView()
+            } else if let errorMessage = viewModel.errorMessage, viewModel.applications.isEmpty {
+                ErrorStateView(error: errorMessage) { Task { await viewModel.load() } }
+            } else if viewModel.applications.isEmpty {
+                ContentUnavailableView("No Applications Yet", systemImage: "doc.text", description: Text("Tap + to apply for a new credit product."))
+            } else {
+                List(viewModel.applications) { application in
+                    ApplicationRow(application: application)
+                }
+                .refreshable { await viewModel.load() }
+            }
         }
     }
 }
@@ -72,6 +86,7 @@ private struct ApplicationRow: View {
             .font(.subheadline)
         }
         .padding(.vertical, DesignSystem.Spacing.xs)
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -85,6 +100,7 @@ private struct StatusBadge: View {
             .padding(.vertical, 4)
             .background(color.opacity(0.15), in: Capsule())
             .foregroundStyle(color)
+            .accessibilityLabel("Status: \(label)")
     }
 
     private var label: String {

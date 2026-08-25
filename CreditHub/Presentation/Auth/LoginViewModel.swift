@@ -6,7 +6,7 @@ final class LoginViewModel {
     var email = ""
     var password = ""
     var isLoading = false
-    var errorMessage: String?
+    var errorMessage: UserFacingError?
 
     private let loginUseCase: LoginUseCase
 
@@ -28,7 +28,7 @@ final class LoginViewModel {
             _ = try await loginUseCase(email: email, password: password)
             return true
         } catch {
-            errorMessage = "We couldn't sign you in. Please check your credentials and try again."
+            errorMessage = ErrorPresenter.present(error, fallbackMessage: String(localized: "login.error.fallback"))
             return false
         }
     }

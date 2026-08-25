@@ -9,6 +9,11 @@ platform :ios do
     sh("cd #{WORKSPACE_ROOT} && xcodegen generate")
   end
 
+  desc "Run SwiftLint in strict mode"
+  lane :lint do
+    sh("cd #{WORKSPACE_ROOT} && swiftlint lint --strict")
+  end
+
   desc "Run the unit + UI test suite"
   lane :test do
     generate_project

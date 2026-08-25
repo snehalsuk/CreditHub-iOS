@@ -1,0 +1,42 @@
+/* Generic error presentation (ErrorPresenter.swift) */
+"error.generic.title" = "Something Went Wrong";
+"error.connection.title" = "Connection Problem";
+"error.connection.message" = "Check your internet connection and try again.";
+"error.sessionExpired.title" = "Session Expired";
+"error.sessionExpired.message" = "Please sign in again to continue.";
+"error.serverUnavailable.title" = "Server Unavailable";
+"error.serverUnavailable.message" = "We're having trouble on our end. Please try again shortly.";
+"error.requestFailed.title" = "Request Failed";
+
+/* Login */
+"login.error.fallback" = "We couldn't sign you in. Please check your credentials and try again.";
+
+/* Dashboard */
+"dashboard.error.fallback" = "We couldn't load your dashboard. Pull to refresh to try again.";
+
+/* Credit Applications */
+"applications.error.loadFallback" = "We couldn't load your applications.";
+"applications.error.invalidAmount.title" = "Invalid Amount";
+"applications.error.invalidAmount.message" = "Enter a valid amount.";
+"applications.offlineQueued.message" = "You're offline — this application will be submitted automatically once you're back online.";
+"applications.error.submitFallback" = "We couldn't submit your application. Please try again.";
+
+/* Activity / Repayments */
+"activity.error.fallback" = "We couldn't load your activity.";
+
+/* Profile */
+"profile.error.loadFallback" = "We couldn't load your profile.";
+"profile.error.securityPreferenceFallback" = "We couldn't update your security preference.";
+
+/* Cards */
+"cards.error.loadFallback" = "We couldn't load your cards.";
+"cards.error.updateFallback" = "We couldn't update this card. Please try again.";
+"cards.error.revealFallback" = "We couldn't verify it's you. Please try again.";
+
+/* Statements */
+"statements.error.loadFallback" = "We couldn't load your statements.";
+"statements.error.downloadFallback" = "We couldn't download this statement. Please try again.";
+
+/* Disputes */
+"disputes.error.loadFallback" = "We couldn't load your disputes.";
+"disputes.error.submitFallback" = "We couldn't submit your dispute. Please try again.";

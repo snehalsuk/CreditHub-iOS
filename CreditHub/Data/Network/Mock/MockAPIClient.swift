@@ -7,6 +7,8 @@ final actor MockAPIClient: APIClient {
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
     private var storedApplications: [CreditApplicationDTO]
+    private var storedCards: [CardDTO]
+    private var storedDisputes: [DisputeDTO]
 
     init() {
         let encoder = JSONEncoder()
@@ -18,6 +20,8 @@ final actor MockAPIClient: APIClient {
         self.decoder = decoder
 
         self.storedApplications = MockFixtures.applications
+        self.storedCards = MockFixtures.cards
+        self.storedDisputes = MockFixtures.disputes
     }
 
     func send<T: Decodable>(_ request: APIRequest, decoding type: T.Type) async throws -> T {
@@ -33,6 +37,15 @@ final actor MockAPIClient: APIClient {
     func send(_ request: APIRequest) async throws {
         try await Task.sleep(nanoseconds: 200_000_000)
         _ = try responseData(for: request)
+    }
+
+    func sendRawData(_ request: APIRequest) async throws -> Data {
+        try await Task.sleep(nanoseconds: 300_000_000)
+        guard request.method == .get, request.path.hasPrefix("/statements/"), request.path.hasSuffix("/document") else {
+            throw APIError.server(statusCode: 404, message: "No mock raw-data endpoint configured for \(request.method.rawValue) \(request.path)")
+        }
+        let statementId = String(request.path.dropFirst("/statements/".count).dropLast("/document".count))
+        return MockFixtures.placeholderStatementPDF(statementId: statementId)
     }
 
     private func responseData(for request: APIRequest) throws -> Data {
@@ -81,8 +94,52 @@ final actor MockAPIClient: APIClient {
         case (.patch, "/user/security-preferences"):
             return Data("{}".utf8)
 
+        case (.get, let path) where path.hasSuffix("/cards"):
+            return try encoder.encode(storedCards)
+
+        case (.patch, let path) where path.hasPrefix("/cards/") && path.hasSuffix("/status"):
+            let cardId = String(path.dropFirst("/cards/".count).dropLast("/status".count))
+            return try updateCard(cardId: cardId) { card in
+                guard let body = request.body, let decoded = try? decoder.decode(UpdateCardStatusRequestDTO.self, from: body) else { return card }
+                return CardDTO(id: card.id, accountId: card.accountId, lastFourDigits: card.lastFourDigits, network: card.network, cardType: card.cardType, status: decoded.status, spendingLimit: card.spendingLimit, currency: card.currency)
+            }
+
+        case (.patch, let path) where path.hasPrefix("/cards/") && path.hasSuffix("/spending-limit"):
+            let cardId = String(path.dropFirst("/cards/".count).dropLast("/spending-limit".count))
+            return try updateCard(cardId: cardId) { card in
+                guard let body = request.body, let decoded = try? decoder.decode(UpdateSpendingLimitRequestDTO.self, from: body) else { return card }
+                return CardDTO(id: card.id, accountId: card.accountId, lastFourDigits: card.lastFourDigits, network: card.network, cardType: card.cardType, status: card.status, spendingLimit: decoded.spendingLimit, currency: card.currency)
+            }
+
+        case (.get, let path) where path.hasSuffix("/reveal"):
+            return try encoder.encode(MockFixtures.cardDetails)
+
+        case (.get, let path) where path.hasSuffix("/statements"):
+            return try encoder.encode(MockFixtures.statements)
+
+        case (.get, "/disputes"):
+            return try encoder.encode(storedDisputes)
+
+        case (.post, let path) where path.hasPrefix("/transactions/") && path.hasSuffix("/disputes"):
+            let transactionId = String(path.dropFirst("/transactions/".count).dropLast("/disputes".count))
+            var reason = "Unrecognized charge"
+            if let body = request.body, let decoded = try? decoder.decode(FileDisputeRequestDTO.self, from: body) {
+                reason = decoded.reason
+            }
+            let newDispute = DisputeDTO(id: UUID().uuidString, transactionId: transactionId, reason: reason, status: "open", createdAt: Date())
+            storedDisputes.insert(newDispute, at: 0)
+            return try encoder.encode(newDispute)
+
         default:
             throw APIError.server(statusCode: 404, message: "No mock configured for \(request.method.rawValue) \(request.path)")
         }
+    }
+
+    private func updateCard(cardId: String, transform: (CardDTO) -> CardDTO) throws -> Data {
+        guard let index = storedCards.firstIndex(where: { $0.id == cardId }) else {
+            throw APIError.server(statusCode: 404, message: "Card not found")
+        }
+        storedCards[index] = transform(storedCards[index])
+        return try encoder.encode(storedCards[index])
     }
 }

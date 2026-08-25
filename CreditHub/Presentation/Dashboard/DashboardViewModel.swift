@@ -6,7 +6,7 @@ final class DashboardViewModel {
     enum State {
         case loading
         case loaded(accounts: [CreditAccount], recentTransactions: [Transaction])
-        case failed(String)
+        case failed(UserFacingError)
     }
 
     var state: State = .loading
@@ -24,7 +24,7 @@ final class DashboardViewModel {
             let summary = try await fetchDashboardUseCase()
             state = .loaded(accounts: summary.accounts, recentTransactions: summary.recentTransactions)
         } catch {
-            state = .failed("We couldn't load your dashboard. Pull to refresh to try again.")
+            state = .failed(ErrorPresenter.present(error, fallbackMessage: String(localized: "dashboard.error.fallback")))
         }
     }
 }

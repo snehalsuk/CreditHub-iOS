@@ -19,7 +19,7 @@ struct NewApplicationView: View {
                         .keyboardType(.decimalPad)
                 }
                 if let errorMessage = viewModel.errorMessage {
-                    Text(errorMessage).foregroundStyle(DesignSystem.Colors.danger)
+                    Text(errorMessage.message).foregroundStyle(DesignSystem.Colors.danger)
                 }
             }
             .navigationTitle("New Application")
