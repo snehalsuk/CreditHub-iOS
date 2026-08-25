@@ -1,0 +1,38 @@
+# Xcode
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+*.xcworkspace/
+xcuserdata/
+DerivedData/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# XcodeGen output (regenerated via `xcodegen generate`)
+/CreditHub.xcodeproj/
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# CocoaPods (unused, kept in case a dependency is added later)
+Pods/
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+fastlane/.env
+
+# Secrets / generated config — never commit real values
+GoogleService-Info.plist
+*.mobileprovision
+*.p12
+*.cer
+.env
+
+# macOS
+.DS_Store

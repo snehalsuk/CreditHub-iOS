@@ -1,0 +1,44 @@
+default_platform(:ios)
+
+SCHEME = "CreditHub"
+WORKSPACE_ROOT = ".."
+
+platform :ios do
+  desc "Regenerate the Xcode project from project.yml"
+  lane :generate_project do
+    sh("cd #{WORKSPACE_ROOT} && xcodegen generate")
+  end
+
+  desc "Run the unit + UI test suite"
+  lane :test do
+    generate_project
+    run_tests(
+      scheme: SCHEME,
+      devices: ["iPhone 15"],
+      clean: true,
+      code_coverage: true
+    )
+  end
+
+  desc "Build a release .ipa (ad hoc export)"
+  lane :build do
+    generate_project
+    build_app(
+      scheme: SCHEME,
+      export_method: "ad-hoc",
+      output_directory: "./build"
+    )
+  end
+
+  desc "Build and upload a new build to TestFlight"
+  lane :beta do
+    generate_project
+    increment_build_number(xcodeproj: "#{WORKSPACE_ROOT}/#{SCHEME}.xcodeproj")
+    build_app(
+      scheme: SCHEME,
+      export_method: "app-store",
+      output_directory: "./build"
+    )
+    upload_to_testflight(skip_waiting_for_build_processing: true)
+  end
+end

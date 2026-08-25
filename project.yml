@@ -1,0 +1,81 @@
+name: CreditHub
+options:
+  bundleIdPrefix: com.credithub
+  deploymentTarget:
+    iOS: "17.0"
+  developmentLanguage: en
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+    TARGETED_DEVICE_FAMILY: "1,2"
+    ENABLE_PREVIEWS: YES
+    CODE_SIGN_STYLE: Automatic
+
+targets:
+  CreditHub:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: CreditHub
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.credithub.app
+        PRODUCT_NAME: CreditHub
+    info:
+      path: CreditHub/Resources/Info.plist
+      properties:
+        CFBundleDisplayName: CreditHub
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        NSFaceIDUsageDescription: "CreditHub uses Face ID to securely unlock your account and authorize transactions."
+        UIBackgroundModes:
+          - remote-notification
+    entitlements:
+      path: CreditHub/Resources/CreditHub.entitlements
+      properties:
+        aps-environment: development
+        keychain-access-groups:
+          - $(AppIdentifierPrefix)com.credithub.app
+    scheme:
+      testTargets:
+        - CreditHubTests
+        - CreditHubUITests
+      gatherCoverageData: true
+
+  CreditHubTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: CreditHubTests
+    dependencies:
+      - target: CreditHub
+
+  CreditHubUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: CreditHubUITests
+    dependencies:
+      - target: CreditHub
+
+schemes:
+  CreditHub:
+    build:
+      targets:
+        CreditHub: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - CreditHubTests
+        - CreditHubUITests
+    archive:
+      config: Release
